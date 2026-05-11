@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "OpenRepoBench Run Result",
+  "type": "object",
+  "required": ["task_id", "agent", "resolved", "commands", "runtime_seconds"],
+  "properties": {
+    "task_id": { "type": "string" },
+    "agent": { "type": "string" },
+    "resolved": { "type": "boolean" },
+    "patch_path": { "type": ["string", "null"] },
+    "runtime_seconds": { "type": "number" },
+    "error": { "type": ["string", "null"] },
+    "metadata": { "type": "object" },
+    "commands": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "command", "exit_code", "stdout", "stderr", "duration_seconds"]
+      }
+    }
+  }
+}
