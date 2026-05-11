@@ -26,6 +26,7 @@ export PATH="$VENV_BIN:$PATH"
 
 "$PYTHON" -m pip install --upgrade pip
 "$PYTHON" -m pip install -e .
+"$PYTHON" -m unittest discover -s tests
 "$PYTHON" -m openrepobench.cli validate-task tasks/public/python/demo_bugfix/task.yaml
 "$PYTHON" -m openrepobench.cli run --task tasks/public/python/demo_bugfix/task.yaml --agent noop || true
 "$PYTHON" -m openrepobench.cli run --task tasks/public/python/demo_bugfix/task.yaml --agent simple_patch

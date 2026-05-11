@@ -38,3 +38,11 @@ The demo task is intentionally tiny. It exists only to prove the harness works.
 This project is designed to evaluate whether AI coding agents can perform software maintenance in existing repositories under reproducible conditions.
 
 It should not become another static toy coding benchmark.
+
+## Project direction
+
+See [ROADMAP.md](ROADMAP.md) for the path from this starter harness to a reproducible, contamination-aware frontier-model benchmark.
+
+## License
+
+Apache-2.0.

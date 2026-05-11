@@ -3,8 +3,6 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from pathlib import Path
 import subprocess
-import tempfile
-import os
 
 
 class Agent(ABC):
@@ -43,17 +41,16 @@ class SimplePatchAgent(Agent):
         target = workspace / "calculator.py"
         original = target.read_text(encoding="utf-8")
         fixed = original.replace("return a - b", "return a + b")
-        target.write_text(fixed, encoding="utf-8")
+        target.write_text(fixed, encoding="utf-8", newline="\n")
 
         patch_path = output_dir / "simple_patch.patch"
         diff = subprocess.run(
             ["git", "diff", "--no-ext-diff"],
             cwd=workspace,
-            text=True,
             capture_output=True,
             check=False,
         )
-        patch_path.write_text(diff.stdout, encoding="utf-8")
+        patch_path.write_bytes(diff.stdout)
         return patch_path
 
 

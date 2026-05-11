@@ -39,6 +39,8 @@ def _copy_workspace(task: Task, run_dir: Path) -> Path:
     shutil.copytree(src, dst, ignore=ignore)
 
     subprocess.run(["git", "init"], cwd=dst, check=True, capture_output=True)
+    subprocess.run(["git", "config", "core.autocrlf", "false"], cwd=dst, check=True)
+    subprocess.run(["git", "config", "core.eol", "lf"], cwd=dst, check=True)
     subprocess.run(["git", "config", "user.email", "benchmark@example.com"], cwd=dst, check=True)
     subprocess.run(["git", "config", "user.name", "OpenRepoBench"], cwd=dst, check=True)
     subprocess.run(["git", "add", "."], cwd=dst, check=True)
