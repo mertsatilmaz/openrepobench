@@ -194,6 +194,87 @@ def response_usage(response: Any) -> dict[str, Any]:
     return {key: getattr(usage, key) for key in dir(usage) if key.endswith("_tokens")}
 
 
+def is_apply_patch_block(patch: str) -> bool:
+    stripped = patch.strip()
+    return stripped.startswith("*** Begin Patch") and stripped.endswith("*** End Patch")
+
+
+def _find_subsequence(lines: list[str], needle: list[str], start: int = 0) -> int:
+    if not needle:
+        return start
+    limit = len(lines) - len(needle) + 1
+    for index in range(start, max(start, limit)):
+        if lines[index : index + len(needle)] == needle:
+            return index
+    return -1
+
+
+def _apply_update_hunk(path: Path, hunk_lines: list[str]) -> None:
+    old_lines: list[str] = []
+    new_lines: list[str] = []
+    for line in hunk_lines:
+        if line.startswith("@@") or not line:
+            continue
+        marker = line[0]
+        text = line[1:] + "\n"
+        if marker == " ":
+            old_lines.append(text)
+            new_lines.append(text)
+        elif marker == "-":
+            old_lines.append(text)
+        elif marker == "+":
+            new_lines.append(text)
+        else:
+            raise ValueError(f"Unsupported apply_patch hunk line: {line}")
+
+    current = path.read_text(encoding="utf-8").splitlines(keepends=True)
+    index = _find_subsequence(current, old_lines)
+    if index < 0:
+        raise ValueError(f"Could not apply patch block to {path}: hunk context not found.")
+    updated = current[:index] + new_lines + current[index + len(old_lines) :]
+    path.write_text("".join(updated), encoding="utf-8", newline="\n")
+
+
+def apply_patch_block(workspace: Path, patch: str) -> None:
+    lines = patch.strip().splitlines()
+    current_file: Path | None = None
+    current_hunk: list[str] = []
+
+    def flush_hunk() -> None:
+        nonlocal current_hunk
+        if current_file is not None and current_hunk:
+            _apply_update_hunk(current_file, current_hunk)
+            current_hunk = []
+
+    for line in lines:
+        if line in {"*** Begin Patch", "*** End Patch"}:
+            continue
+        if line.startswith("*** Update File: "):
+            flush_hunk()
+            rel_path = line.removeprefix("*** Update File: ").strip()
+            current_file = workspace / rel_path
+            if not current_file.exists():
+                raise ValueError(f"Cannot update missing file from patch block: {rel_path}")
+            continue
+        if line.startswith("*** Add File: ") or line.startswith("*** Delete File: "):
+            raise ValueError("Only Update File apply_patch blocks are supported by this adapter.")
+        if current_file is None:
+            raise ValueError(f"Patch block hunk found before file header: {line}")
+        current_hunk.append(line)
+
+    flush_hunk()
+
+
+def normalize_patch(workspace: Path, patch: str) -> tuple[str, str]:
+    if is_apply_patch_block(patch):
+        apply_patch_block(workspace, patch)
+        diff = _run_git(workspace, "diff", "--no-ext-diff")
+        if diff.returncode != 0:
+            raise ValueError(f"Failed to create normalized git diff: {diff.stderr}")
+        return diff.stdout, "converted_apply_patch_block"
+    return patch, "model_git_diff"
+
+
 def run_adapter(
     workspace: Path,
     prompt_file: Path,
@@ -222,9 +303,11 @@ def run_adapter(
     parsed = parse_patch_response(output_text)
 
     output_dir.mkdir(parents=True, exist_ok=True)
-    patch_path.write_text(parsed["patch"], encoding="utf-8", newline="\n")
+    normalized_patch, patch_format = normalize_patch(workspace, parsed["patch"])
+    patch_path.write_text(normalized_patch, encoding="utf-8", newline="\n")
     (output_dir / "openai_notes.txt").write_text(parsed["notes"], encoding="utf-8")
     (output_dir / "openai_raw_output.txt").write_text(output_text, encoding="utf-8")
+    (output_dir / "openai_patch_format.txt").write_text(patch_format, encoding="utf-8")
     (output_dir / "openai_usage.json").write_text(json.dumps(response_usage(response), indent=2), encoding="utf-8")
     (output_dir / "workspace_snapshot.json").write_text(
         json.dumps(
