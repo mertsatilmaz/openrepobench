@@ -49,8 +49,8 @@ OpenRepoBench should become a benchmark that frontier-model teams can take serio
 
 ## Immediate Next Tickets
 
-- Implement Docker sandbox execution in `openrepobench.runner`.
-- Add task/result schema validation commands to the CLI.
-- Add a minimal result-bundle format with logs, patch, task snapshot, and metadata.
+- Expand Docker sandbox execution with image build/pull controls and stronger cleanup.
+- Add JSON Schema validation for tasks in addition to Pydantic validation.
+- Add model metadata and agent configuration files to result bundles.
 - Add one medium-difficulty public task from a real repository fixture.
 - Add a hidden-test convention that can run locally without leaking hidden files.

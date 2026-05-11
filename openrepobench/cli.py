@@ -2,8 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 import argparse
-import json
-from .schemas import load_task
+from .schemas import load_result, load_task
 from .agents import get_agent
 from .runner import run_task
 
@@ -11,6 +10,12 @@ from .runner import run_task
 def validate_task(args) -> int:
     task = load_task(args.task)
     print(task.model_dump_json(indent=2))
+    return 0
+
+
+def validate_result(args) -> int:
+    result = load_result(args.result)
+    print(result.model_dump_json(indent=2))
     return 0
 
 
@@ -29,6 +34,10 @@ def main() -> None:
     p_validate = sub.add_parser("validate-task", help="Validate and print a task file.")
     p_validate.add_argument("task")
     p_validate.set_defaults(func=validate_task)
+
+    p_validate_result = sub.add_parser("validate-result", help="Validate and print a result file.")
+    p_validate_result.add_argument("result")
+    p_validate_result.set_defaults(func=validate_result)
 
     p_run = sub.add_parser("run", help="Run one task with one agent.")
     p_run.add_argument("--task", required=True)

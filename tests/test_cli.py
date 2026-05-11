@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 from pathlib import Path
 import subprocess
@@ -55,6 +56,25 @@ class CliTests(unittest.TestCase):
 
         self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
         self.assertIn('"resolved": true', proc.stdout)
+
+    def test_validate_result_accepts_generated_result(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            run_proc = self.run_cli(
+                "run",
+                "--task",
+                str(TASK),
+                "--agent",
+                "simple_patch",
+                "--output-dir",
+                tmp,
+            )
+            self.assertEqual(run_proc.returncode, 0, run_proc.stdout + run_proc.stderr)
+            result_path = json.loads(run_proc.stdout)["result_path"]
+
+            validate_proc = self.run_cli("validate-result", result_path)
+
+        self.assertEqual(validate_proc.returncode, 0, validate_proc.stdout + validate_proc.stderr)
+        self.assertIn('"resolved": true', validate_proc.stdout)
 
 
 if __name__ == "__main__":

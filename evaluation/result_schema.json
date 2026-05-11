@@ -7,15 +7,44 @@
     "task_id": { "type": "string" },
     "agent": { "type": "string" },
     "resolved": { "type": "boolean" },
+    "failure_kind": {
+      "type": ["string", "null"],
+      "enum": [
+        "setup_failure",
+        "patch_failure",
+        "forbidden_change",
+        "public_test_failure",
+        "hidden_test_failure",
+        "regression_test_failure",
+        "lint_failure",
+        "security_failure",
+        "timeout",
+        "harness_error",
+        null
+      ]
+    },
     "patch_path": { "type": ["string", "null"] },
     "runtime_seconds": { "type": "number" },
+    "run_dir": { "type": ["string", "null"] },
+    "result_path": { "type": ["string", "null"] },
+    "bundle_path": { "type": ["string", "null"] },
     "error": { "type": ["string", "null"] },
     "metadata": { "type": "object" },
     "commands": {
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["name", "command", "exit_code", "stdout", "stderr", "duration_seconds"]
+        "required": ["name", "command", "exit_code", "stdout", "stderr", "duration_seconds"],
+        "properties": {
+          "name": { "type": "string" },
+          "command": { "type": "string" },
+          "executor": { "type": "string", "enum": ["local", "docker"] },
+          "exit_code": { "type": "integer" },
+          "stdout": { "type": "string" },
+          "stderr": { "type": "string" },
+          "duration_seconds": { "type": "number" },
+          "timed_out": { "type": "boolean" }
+        }
       }
     }
   }

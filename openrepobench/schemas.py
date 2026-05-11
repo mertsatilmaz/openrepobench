@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 from typing import Literal
 import yaml
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
 TaskType = Literal[
@@ -17,11 +18,33 @@ TaskType = Literal[
 ]
 
 
+FailureKind = Literal[
+    "setup_failure",
+    "patch_failure",
+    "forbidden_change",
+    "public_test_failure",
+    "hidden_test_failure",
+    "regression_test_failure",
+    "lint_failure",
+    "security_failure",
+    "timeout",
+    "harness_error",
+]
+
+
 class EnvironmentSpec(BaseModel):
     kind: Literal["local", "docker"] = "local"
     docker_image: str | None = None
-    timeout_seconds: int = 1800
+    cpus: float | None = Field(default=None, gt=0)
+    memory: str | None = None
+    timeout_seconds: int = Field(default=1800, gt=0)
     network: Literal["disabled", "enabled"] = "disabled"
+
+    @model_validator(mode="after")
+    def require_docker_image(self) -> "EnvironmentSpec":
+        if self.kind == "docker" and not self.docker_image:
+            raise ValueError("Docker environments must set docker_image.")
+        return self
 
 
 class CommandSpec(BaseModel):
@@ -55,27 +78,51 @@ class Task(BaseModel):
     commands: CommandSpec
     scoring: ScoringSpec
 
+    @model_validator(mode="after")
+    def require_scored_commands(self) -> "Task":
+        required_commands = [
+            (self.scoring.require_hidden_tests, self.commands.hidden_tests, "hidden_tests"),
+            (self.scoring.require_regression_tests, self.commands.regression_tests, "regression_tests"),
+            (self.scoring.require_lint, self.commands.lint, "lint"),
+            (self.scoring.require_security, self.commands.security, "security"),
+        ]
+        missing = [name for required, command, name in required_commands if required and not command]
+        if missing:
+            joined = ", ".join(missing)
+            raise ValueError(f"Required scoring commands are missing: {joined}.")
+        return self
+
 
 class CommandResult(BaseModel):
     name: str
     command: str
+    executor: Literal["local", "docker"] = "local"
     exit_code: int
     stdout: str
     stderr: str
     duration_seconds: float
+    timed_out: bool = False
 
 
 class RunResult(BaseModel):
     task_id: str
     agent: str
     resolved: bool
+    failure_kind: FailureKind | None = None
     patch_path: str | None
     commands: list[CommandResult]
     runtime_seconds: float
+    run_dir: str | None = None
+    result_path: str | None = None
+    bundle_path: str | None = None
     error: str | None = None
-    metadata: dict = Field(default_factory=dict)
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
 
 def load_task(path: str | Path) -> Task:
     raw = yaml.safe_load(Path(path).read_text(encoding="utf-8"))
     return Task.model_validate(raw)
+
+
+def load_result(path: str | Path) -> RunResult:
+    return RunResult.model_validate_json(Path(path).read_text(encoding="utf-8"))

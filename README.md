@@ -29,9 +29,12 @@ python -m pip install -e .
 openrepobench validate-task tasks/public/python/demo_bugfix/task.yaml
 openrepobench run --task tasks/public/python/demo_bugfix/task.yaml --agent noop
 openrepobench run --task tasks/public/python/demo_bugfix/task.yaml --agent simple_patch
+openrepobench validate-result runs/<run-id>/result.json
 ```
 
 The demo task is intentionally tiny. It exists only to prove the harness works.
+
+Each run writes a result bundle containing the normalized result, task snapshot, patch, logs, and manifest. See [docs/result_bundles.md](docs/result_bundles.md).
 
 ## Benchmark philosophy
 
@@ -42,6 +45,8 @@ It should not become another static toy coding benchmark.
 ## Project direction
 
 See [ROADMAP.md](ROADMAP.md) for the path from this starter harness to a reproducible, contamination-aware frontier-model benchmark.
+
+For benchmark-grade execution, tasks can run scoring commands inside Docker. See [docs/sandboxing.md](docs/sandboxing.md).
 
 ## License
 
