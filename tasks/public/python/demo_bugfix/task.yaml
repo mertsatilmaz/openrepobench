@@ -8,6 +8,7 @@ prompt: |
   The add(a, b) function in calculator.py is broken. It should return the sum
   of a and b. Fix the implementation without changing the tests.
 workspace: tasks/public/python/demo_bugfix/repo
+gold_patch: gold.patch
 
 environment:
   kind: local

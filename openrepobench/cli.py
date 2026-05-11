@@ -4,6 +4,7 @@ from pathlib import Path
 import argparse
 import json
 from .agents import CommandAgent, get_agent
+from .authoring import scaffold_task, validate_gold
 from .schemas import load_result, load_task
 from .runner import run_task
 from .suite import expand_task_paths, load_metadata, run_suite
@@ -30,6 +31,28 @@ def validate_task(args) -> int:
 def validate_result(args) -> int:
     result = load_result(args.result)
     print(result.model_dump_json(indent=2))
+    return 0
+
+
+def validate_gold_command(args) -> int:
+    summary = validate_gold(args.task, args.output_dir)
+    print(json.dumps(summary, indent=2))
+    return 0 if summary["passed"] else 1
+
+
+def scaffold_task_command(args) -> int:
+    result = scaffold_task(
+        root=args.root,
+        task_id=args.id,
+        language=args.language,
+        task_type=args.task_type,
+        prompt=args.prompt,
+        public_tests=args.public_tests,
+        repo=args.repo,
+        difficulty=args.difficulty,
+        timeout_seconds=args.timeout,
+    )
+    print(json.dumps(result, indent=2))
     return 0
 
 
@@ -64,6 +87,23 @@ def main() -> None:
     p_validate_result = sub.add_parser("validate-result", help="Validate and print a result file.")
     p_validate_result.add_argument("result")
     p_validate_result.set_defaults(func=validate_result)
+
+    p_validate_gold = sub.add_parser("validate-gold", help="Validate baseline failure and gold patch success.")
+    p_validate_gold.add_argument("task")
+    p_validate_gold.add_argument("--output-dir", default="runs/authoring")
+    p_validate_gold.set_defaults(func=validate_gold_command)
+
+    p_scaffold = sub.add_parser("scaffold-task", help="Create a task.yaml, repo folder, and gold.patch placeholder.")
+    p_scaffold.add_argument("--root", required=True, help="Task directory to create.")
+    p_scaffold.add_argument("--id", required=True, help="Stable task id.")
+    p_scaffold.add_argument("--language", required=True)
+    p_scaffold.add_argument("--task-type", default="bugfix")
+    p_scaffold.add_argument("--difficulty", default="medium")
+    p_scaffold.add_argument("--repo", default="local/scaffold")
+    p_scaffold.add_argument("--prompt", required=True)
+    p_scaffold.add_argument("--public-tests", required=True)
+    p_scaffold.add_argument("--timeout", type=int, default=300)
+    p_scaffold.set_defaults(func=scaffold_task_command)
 
     p_run = sub.add_parser("run", help="Run one task with one agent.")
     p_run.add_argument("--task", required=True)

@@ -76,6 +76,39 @@ class CliTests(unittest.TestCase):
         self.assertEqual(validate_proc.returncode, 0, validate_proc.stdout + validate_proc.stderr)
         self.assertIn('"resolved": true', validate_proc.stdout)
 
+    def test_validate_gold_accepts_demo_task(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            proc = self.run_cli(
+                "validate-gold",
+                str(TASK),
+                "--output-dir",
+                tmp,
+            )
+
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        self.assertIn('"passed": true', proc.stdout)
+
+    def test_scaffold_task_creates_files(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "new_task"
+            proc = self.run_cli(
+                "scaffold-task",
+                "--root",
+                str(root),
+                "--id",
+                "new_task_v1",
+                "--language",
+                "python",
+                "--prompt",
+                "Fix it.",
+                "--public-tests",
+                "python -m unittest",
+            )
+
+            self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+            self.assertTrue((root / "task.yaml").exists())
+            self.assertTrue((root / "gold.patch").exists())
+
     def test_run_suite_summarizes_results(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             proc = self.run_cli(

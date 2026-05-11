@@ -54,3 +54,4 @@ OpenRepoBench should become a benchmark that frontier-model teams can take serio
 - Add model metadata and agent configuration files to result bundles.
 - Add one medium-difficulty public task from a real repository fixture.
 - Add a hidden-test convention that can run locally without leaking hidden files.
+- Add batch task ingestion tools for importing issue/PR-derived fixtures.

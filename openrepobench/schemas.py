@@ -74,6 +74,7 @@ class Task(BaseModel):
     difficulty: Literal["easy", "medium", "hard", "brutal"] = "medium"
     prompt: str
     workspace: str
+    gold_patch: str | None = None
     environment: EnvironmentSpec
     commands: CommandSpec
     scoring: ScoringSpec

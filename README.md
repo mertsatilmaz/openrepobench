@@ -27,6 +27,7 @@ This starter scaffold includes:
 ```bash
 python -m pip install -e .
 openrepobench validate-task tasks/public/python/demo_bugfix/task.yaml
+openrepobench validate-gold tasks/public/python/demo_bugfix/task.yaml
 openrepobench run --task tasks/public/python/demo_bugfix/task.yaml --agent noop
 openrepobench run --task tasks/public/python/demo_bugfix/task.yaml --agent simple_patch
 openrepobench run-suite --tasks "tasks/public/**/task.yaml" --agent simple_patch
