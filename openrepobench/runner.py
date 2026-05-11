@@ -3,11 +3,17 @@ from __future__ import annotations
 from pathlib import Path
 import hashlib
 import json
+import re
 import shutil
 import subprocess
 import time
 import uuid
 from .schemas import FailureKind, Task, CommandResult, RunResult
+
+
+def safe_name(value: str) -> str:
+    safe = re.sub(r"[^A-Za-z0-9_.-]+", "_", value).strip("._")
+    return safe or "unnamed"
 
 
 def _as_text(value: str | bytes | None) -> str:
@@ -307,9 +313,9 @@ def _write_run_artifacts(run_dir: Path, task: Task, result: RunResult, patch_pat
     manifest_path.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
 
 
-def run_task(task: Task, agent, output_root: Path) -> RunResult:
+def run_task(task: Task, agent, output_root: Path, run_metadata: dict | None = None) -> RunResult:
     started = time.time()
-    run_dir = output_root / f"{task.id}__{agent.name}__{int(started)}"
+    run_dir = output_root / f"{safe_name(task.id)}__{safe_name(agent.name)}__{int(started)}"
     run_dir.mkdir(parents=True, exist_ok=True)
 
     commands: list[CommandResult] = []
@@ -317,7 +323,7 @@ def run_task(task: Task, agent, output_root: Path) -> RunResult:
     error: str | None = None
     failure_kind: FailureKind | None = None
     resolved = False
-    metadata = {}
+    metadata = dict(run_metadata or {})
 
     try:
         workspace = _copy_workspace(task, run_dir)

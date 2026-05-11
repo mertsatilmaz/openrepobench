@@ -76,6 +76,50 @@ class CliTests(unittest.TestCase):
         self.assertEqual(validate_proc.returncode, 0, validate_proc.stdout + validate_proc.stderr)
         self.assertIn('"resolved": true', validate_proc.stdout)
 
+    def test_run_suite_summarizes_results(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            proc = self.run_cli(
+                "run-suite",
+                "--tasks",
+                str(TASK),
+                "--agent",
+                "simple_patch",
+                "--output-dir",
+                tmp,
+            )
+
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        summary = json.loads(proc.stdout)
+        self.assertEqual(summary["total_tasks"], 1)
+        self.assertEqual(summary["resolved_tasks"], 1)
+        self.assertEqual(summary["harness_errors"], 0)
+
+    def test_command_agent_can_be_used_from_cli(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            script = Path(tmp) / "fix_agent.py"
+            script.write_text(
+                "from pathlib import Path\n"
+                "Path('calculator.py').write_text('def add(a, b):\\n    return a + b\\n', newline='\\n')\n",
+                encoding="utf-8",
+            )
+            proc = self.run_cli(
+                "run",
+                "--task",
+                str(TASK),
+                "--agent",
+                "command",
+                "--agent-name",
+                "fixture-command",
+                "--agent-command",
+                f'"{sys.executable}" "{script}"',
+                "--output-dir",
+                tmp,
+            )
+
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        self.assertIn('"agent": "fixture-command"', proc.stdout)
+        self.assertIn('"resolved": true', proc.stdout)
+
 
 if __name__ == "__main__":
     unittest.main()

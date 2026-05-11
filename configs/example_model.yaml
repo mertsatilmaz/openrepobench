@@ -1,0 +1,20 @@
+model:
+  provider: example-provider
+  name: example-frontier-model
+  version: "2026-05-11"
+  temperature: 0
+  top_p: 1
+  max_output_tokens: null
+
+agent:
+  framework: external-cli
+  version: unknown
+  internet_access: disabled
+  tool_access:
+    - shell
+    - file_edit
+  attempts_per_task: 1
+
+run:
+  track: agent-no-internet-single-attempt
+  notes: Replace these fields before submitting benchmark results.

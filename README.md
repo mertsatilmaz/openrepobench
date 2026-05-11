@@ -29,6 +29,7 @@ python -m pip install -e .
 openrepobench validate-task tasks/public/python/demo_bugfix/task.yaml
 openrepobench run --task tasks/public/python/demo_bugfix/task.yaml --agent noop
 openrepobench run --task tasks/public/python/demo_bugfix/task.yaml --agent simple_patch
+openrepobench run-suite --tasks "tasks/public/**/task.yaml" --agent simple_patch
 openrepobench validate-result runs/<run-id>/result.json
 ```
 
@@ -47,6 +48,8 @@ It should not become another static toy coding benchmark.
 See [ROADMAP.md](ROADMAP.md) for the path from this starter harness to a reproducible, contamination-aware frontier-model benchmark.
 
 For benchmark-grade execution, tasks can run scoring commands inside Docker. See [docs/sandboxing.md](docs/sandboxing.md).
+
+To benchmark a real model-backed coding agent, use the external command agent and suite runner. See [docs/benchmarking_frontier_models.md](docs/benchmarking_frontier_models.md).
 
 ## License
 

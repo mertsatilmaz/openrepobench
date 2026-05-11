@@ -30,3 +30,4 @@ export PATH="$VENV_BIN:$PATH"
 "$PYTHON" -m openrepobench.cli validate-task tasks/public/python/demo_bugfix/task.yaml
 "$PYTHON" -m openrepobench.cli run --task tasks/public/python/demo_bugfix/task.yaml --agent noop || true
 "$PYTHON" -m openrepobench.cli run --task tasks/public/python/demo_bugfix/task.yaml --agent simple_patch
+"$PYTHON" -m openrepobench.cli run-suite --tasks "tasks/public/**/task.yaml" --agent simple_patch --model-config configs/example_model.yaml
