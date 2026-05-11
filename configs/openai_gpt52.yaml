@@ -1,0 +1,20 @@
+model:
+  provider: openai
+  name: gpt-5.2
+  version: gpt-5.2
+  temperature: null
+  top_p: null
+  max_output_tokens: null
+
+agent:
+  framework: openrepobench-openai-patch-agent
+  version: 0.1.0
+  internet_access: disabled
+  tool_access:
+    - repository_snapshot
+    - patch_generation
+  attempts_per_task: 1
+
+run:
+  track: agent-no-internet-single-attempt
+  notes: Uses the Responses API through the optional OpenAI adapter.

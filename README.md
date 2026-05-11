@@ -51,6 +51,8 @@ For benchmark-grade execution, tasks can run scoring commands inside Docker. See
 
 To benchmark a real model-backed coding agent, use the external command agent and suite runner. See [docs/benchmarking_frontier_models.md](docs/benchmarking_frontier_models.md).
 
+For a ready-made OpenAI adapter, see [docs/openai_adapter.md](docs/openai_adapter.md).
+
 ## License
 
 Apache-2.0.

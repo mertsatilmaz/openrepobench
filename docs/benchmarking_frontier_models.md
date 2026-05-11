@@ -15,6 +15,8 @@ The command receives these environment variables:
 
 If the command does not write a patch file, OpenRepoBench captures `git diff` from the workspace.
 
+For OpenAI models, a ready-made adapter is available. See [openai_adapter.md](openai_adapter.md).
+
 ## Single task
 
 ```bash
